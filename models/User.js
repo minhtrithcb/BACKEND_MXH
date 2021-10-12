@@ -28,6 +28,9 @@ const UsersSchema = new Schema({
     adress : {
         type: String,
     },
+    story : {
+        type: String,
+    },
     status : {
         type: Boolean,
         default: true
@@ -35,10 +38,27 @@ const UsersSchema = new Schema({
     avatar: {
         type: String,
     },
+    ava_clond_id: {
+        type: String,
+        select: false
+    },
+    background: {
+        type: String,
+    },
+    bg_clond_id: {
+        type: String,
+        select: false
+    },
     isVerifi: {
         type: Boolean,
         default: false
-    }
+    },
+    interests: [{
+        type: Schema.ObjectId, ref: 'interests' 
+    }],
+    friend: [{ 
+        type: Schema.ObjectId, ref: 'users' 
+    }]
 },{
     versionKey: false,
     timestamps: true

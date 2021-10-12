@@ -1,9 +1,8 @@
-// const cloudinary  = require("../config/cloudinary")
-// const Catalogs = require('../models/Catalogs')
-
+const cloudinary  = require("../config/cloudinary")
 const User = require("../models/User")
 
 class UserController {
+
     getAll (req, res) {
         User.find().sort({createdAt: 'desc'})
         .then(users => {
@@ -20,7 +19,7 @@ class UserController {
     }
 
     getInfo (req, res) {
-        User.findById(req.uid)
+        User.findById(req.uid).populate("friend")
         .then(info => {
             return res.json({
                 success: true,
@@ -34,6 +33,82 @@ class UserController {
         })
     }
 
+    getUserById (req, res) {
+        let id = req.params.id
+        User.findById(id)
+        .then(user => {
+            return res.json({
+                success: true,
+                user, 
+            })
+        }).catch(err => {
+            return res.json({
+                success: false,
+                msg: "Không tìm thấy user"
+            })
+        })
+    }
+
+    async update (req, res) {
+        let ava, bg
+        let user = await User.findById(req.uid).select("+ava_clond_id +bg_clond_id")
+        try {
+            if (req.files && req.files['avatar'] !== undefined) {      
+                ava = await cloudinary.uploader.upload(req.files['avatar'][0].path)
+                user.ava_clond_id && cloudinary.uploader.destroy(user.ava_clond_id)
+            }
+
+            if (req.files && req.files['background'] !== undefined) {      
+                bg = await cloudinary.uploader.upload(req.files['background'][0].path)
+                user.bg_clond_id && cloudinary.uploader.destroy(user.bg_clond_id)
+            }         
+            
+            await user.updateOne({
+                fullname :      req.body.fullname,
+                mobile :        req.body.mobile,
+                adress:         req.body.adress,
+                avatar:         ava?.secure_url  || user.avatar,
+                ava_clond_id:   ava?.public_id   || user.ava_clond_id,
+                background:     bg?.secure_url   || user.background,
+                bg_clond_id:    bg?.public_id    || user.bg_clond_id
+            })
+            
+            return res.json({
+                success: true,
+                msg: "Sửa thành công"
+            })
+
+        } catch (error) {
+            console.log(error);
+            return res.json({
+                success: false,
+                msg: error
+            })
+        }
+
+    }
+
+    // user.updateOne({
+    //     fullname : req.body.fullname,
+    //     mobile :req.body.mobile,
+    //     adress: req.body.adress,
+    //     avatar:         ava.secure_url  || user.avatar,
+    //     ava_clond_id:   ava.public_id   || user.ava_clond_id,
+    //     background:     bg.secure_url   || user.background,
+    //     bg_clond_id:    bg.public_id    || user.bg_clond_id
+    // })
+    // .then(() => {
+    //     return res.json({
+    //         success: true,
+    //         msg: "Sửa thành công"
+    //     })
+    // })
+    // .catch((error)=> {
+    //     return res.json({
+    //         success: false,
+    //         msg: error
+    //     })
+    // })
     // async add (req, res) {
     //     let image
     //     if (req?.file?.path) {            
@@ -58,43 +133,7 @@ class UserController {
     //     })
     // }
 
-    // async update (req, res) {
-    //     try {
-    //         let id = req.params.id
-    //         let image
-    //         let catalog = await Catalogs.findById(id).select("+cloud_id")
-    //         if (req?.file?.path) {            
-    //             image = await cloudinary.uploader.upload(req.file.path);
-    //             cloudinary.uploader.destroy(catalog.cloud_id)
-    //         }
-    //         catalog.updateOne({
-    //             title : req.body.title,
-    //             slug :req.body.slug,
-    //             description: req.body.description,
-    //             image: image?.secure_url || catalog.image,
-    //             cloud_id: image?.public_id || catalog.cloud_id
-    //         })
-    //         .then(() => {
-    //             return res.json({
-    //                 success: true,
-    //                 msg: "Sửa Danh mục thành công"
-    //             })
-    //         })
-    //         .catch((error )=> {
-    //             return res.json({
-    //                 success: false,
-    //                 msg: error
-    //             })
-    //         })
-            
-    //     } catch (error) {
-    //         return res.json({
-    //             success: false,
-    //             msg: error
-    //         })
-            
-    //     }
-    // }
+    
 
     // async delete (req,res) {
     //     try {
