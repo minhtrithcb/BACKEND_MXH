@@ -4,7 +4,8 @@ const User = require("../models/User")
 class UserController {
 
     getAll (req, res) {
-        User.find().sort({createdAt: 'desc'})
+        User.find()
+        .sort({createdAt: 'desc'})
         .then(users => {
             return res.json({
                 success: true,
@@ -19,7 +20,9 @@ class UserController {
     }
 
     getInfo (req, res) {
-        User.findById(req.uid).populate("friend")
+        User.findById(req.uid)
+        .populate("friend")
+        .populate("interests")
         .then(info => {
             return res.json({
                 success: true,
@@ -57,12 +60,14 @@ class UserController {
                 ava = await cloudinary.uploader.upload(req.files['avatar'][0].path)
                 user.ava_clond_id && cloudinary.uploader.destroy(user.ava_clond_id)
             }
-
+            
             if (req.files && req.files['background'] !== undefined) {      
                 bg = await cloudinary.uploader.upload(req.files['background'][0].path)
                 user.bg_clond_id && cloudinary.uploader.destroy(user.bg_clond_id)
             }         
             
+            let inters = (req.body.interests) ? JSON.parse(req.body.interests) :  user.interests
+
             await user.updateOne({
                 fullname :      req.body.fullname,
                 mobile :        req.body.mobile,
@@ -70,7 +75,17 @@ class UserController {
                 avatar:         ava?.secure_url  || user.avatar,
                 ava_clond_id:   ava?.public_id   || user.ava_clond_id,
                 background:     bg?.secure_url   || user.background,
-                bg_clond_id:    bg?.public_id    || user.bg_clond_id
+                bg_clond_id:    bg?.public_id    || user.bg_clond_id,
+                interests: inters,
+                intro: {
+                    school: req.body.school, 
+                    school_college: req.body.school_college, 
+                    school_university: req.body.school_university, 
+                    worked: req.body.worked,
+                    work: req.body.work,
+                    married_status: req.body.married_status,
+                    living: req.body.living,
+                }
             })
             
             return res.json({

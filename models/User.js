@@ -53,6 +53,15 @@ const UsersSchema = new Schema({
         type: Boolean,
         default: false
     },
+    intro: {
+        school: String, 
+        school_college: String, 
+        school_university: String, 
+        worked: String,
+        work: String,
+        married_status: String,
+        living: String,
+    },
     interests: [{
         type: Schema.ObjectId, ref: 'interests' 
     }],
